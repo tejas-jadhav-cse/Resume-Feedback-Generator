@@ -4,7 +4,7 @@
 
 ![Resume Feedback Generator Banner](https://placehold.co/1200x300?text=Resume+Feedback+Generator)
 
-**[✅ Live Demo](https://resume-feedback-generator.vercel.app/) | [📚 Documentation](#how-it-works) | [🚀 Getting Started](#getting-started) | [📱 Features](#key-features) | [🛠️ Tech Stack](#technology-stack)**
+**[✅ Live Demo](https://resume-feedback.netlify.app/) | [📚 Documentation](#how-it-works) | [🚀 Getting Started](#getting-started) | [📱 Features](#key-features) | [🛠️ Tech Stack](#technology-stack)**
 
 </div>
 
@@ -84,7 +84,7 @@ This fully client-side app provides actionable suggestions, section-by-section a
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/resume-feedback-generator.git
+git clone https://github.com/tejas-jadhav-cse/resume-feedback-generator.git
 
 # Navigate to the project directory
 cd resume-feedback-generator
@@ -307,7 +307,6 @@ If you find this project helpful, consider:
 
 - Giving it a ⭐ on GitHub
 - Sharing it with friends and colleagues
-- [Buying me a coffee](https://www.buymeacoffee.com/yourusername)
 
 ## 📄 License
 
@@ -325,9 +324,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Have questions or feedback? Reach out through:
 
-- GitHub Issues: [Open an issue](https://github.com/yourusername/resume-feedback-generator/issues)
-- Email: your.email@example.com
-- Twitter: [@YourTwitterHandle](https://twitter.com/YourTwitterHandle)
+- GitHub tejas.jadhav.cse@gmail.com
+- Linkedin: [@jadhavtejas](https://linkedin.com/in/jadhavtejas)
 
 ---
 
