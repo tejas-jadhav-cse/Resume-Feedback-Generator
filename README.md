@@ -375,14 +375,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Have questions or feedback? Reach out through:
 
-- GitHub Issues: [Open an issue](https://github.com/tejas-jadhav-cse/resume-feedback-generator/issues)
-- Email: tejas.jadhav.cse@gmail.com
+- GitHub Issues: [Open an issue](https://github.com/yourusername/resume-feedback-generator/issues)
+- Email: your.email@example.com
+- Twitter: [@YourTwitterHandle](https://twitter.com/YourTwitterHandle)
 
 ---
 
 <div align="center">
 
-Made with ❤️ by [Tejas Jadhav](https://github.com/tejas-jadhav-cse)
+Made with ❤️ by [Your Name](https://github.com/yourusername)
 
 </div>
   },
