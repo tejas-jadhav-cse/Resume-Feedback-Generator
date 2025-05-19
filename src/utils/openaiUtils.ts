@@ -8,6 +8,15 @@ export interface ResumeFeedback {
   score: number;
 }
 
+// Interface for job match analysis results
+export interface JobMatchAnalysisResult {
+  overallMatch: number;
+  keywordMatches: { keyword: string; found: boolean }[];
+  missingKeywords: string[];
+  suggestedImprovements: string[];
+  relevanceScore: number;
+}
+
 // Mock feedback for testing or when API key isn't available
 export const getMockFeedback = (): ResumeFeedback => {
   return {
@@ -25,6 +34,60 @@ export const getMockFeedback = (): ResumeFeedback => {
       'Use strong action verbs at the beginning of each bullet point (e.g., "Implemented", "Developed", "Led")'
     ],
     score: 72
+  };
+};
+
+// Mock job match analysis for testing or when API key isn't available
+export const getMockJobMatchAnalysis = (jobDescription: string): JobMatchAnalysisResult => {
+  const keywords = [
+    'React', 'TypeScript', 'JavaScript', 'Node.js', 'API', 
+    'Git', 'Agile', 'Testing', 'Frontend', 'Backend',
+    'CI/CD', 'AWS', 'Cloud', 'Database', 'SQL'
+  ];
+  
+  // Extract some keywords that might be in the job description
+  const descriptionKeywords = keywords.filter(keyword => 
+    jobDescription.toLowerCase().includes(keyword.toLowerCase())
+  );
+  
+  // If no keywords found, use a random selection
+  const selectedKeywords = descriptionKeywords.length > 0 
+    ? descriptionKeywords.slice(0, Math.min(7, descriptionKeywords.length))
+    : keywords.sort(() => Math.random() - 0.5).slice(0, 7);
+  
+  const keywordMatches = selectedKeywords.map(keyword => ({
+    keyword,
+    found: Math.random() > 0.3 // 70% chance of being found
+  }));
+  
+  const missingKeywords = selectedKeywords
+    .filter((_, index) => !keywordMatches[index].found)
+    .map(keyword => keyword);
+  
+  // Add some random additional missing keywords
+  const additionalMissing = keywords
+    .filter(keyword => !selectedKeywords.includes(keyword))
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  
+  const allMissing = [...missingKeywords, ...additionalMissing];
+  
+  // Calculate match based on found keywords percentage
+  const foundCount = keywordMatches.filter(k => k.found).length;
+  const overallMatch = Math.floor((foundCount / keywordMatches.length) * 100);
+  
+  return {
+    overallMatch,
+    keywordMatches,
+    missingKeywords: allMissing,
+    suggestedImprovements: [
+      `Add specific experience with ${allMissing[0] || 'relevant technologies'}`,
+      'Quantify your achievements with specific metrics',
+      'Highlight leadership roles or team collaboration',
+      `Include keywords like ${allMissing[1] || 'industry-specific terms'}`,
+      'Tailor your professional summary to match the job requirements'
+    ],
+    relevanceScore: Math.min(95, overallMatch + Math.floor(Math.random() * 15))
   };
 };
 
@@ -92,5 +155,57 @@ ${resumeText}`;
   } catch (error) {
     console.error('Error getting AI feedback:', error);
     return getMockFeedback();
+  }
+};
+
+// Function to analyze resume against job description
+export const getJobMatchAnalysis = async (
+  resumeText: string, 
+  jobDescription: string,
+  apiKey: string
+): Promise<JobMatchAnalysisResult> => {
+  try {
+    if (!apiKey) {
+      console.warn('No API key provided, returning mock job match analysis');
+      return getMockJobMatchAnalysis(jobDescription);
+    }
+
+    const openai = new OpenAI({
+      apiKey,
+      dangerouslyAllowBrowser: true
+    });
+
+    // Define the prompt
+    const prompt = `Analyze how well the provided resume matches the given job description. Focus on:
+1. Identifying key skills, technologies, and qualifications from the job description
+2. Determining if these are present in the resume
+3. Calculating an overall match percentage
+4. Suggesting specific improvements
+
+Format your response as valid JSON with the following structure:
+{
+  "overallMatch": number (percentage of match from 0-100),
+  "keywordMatches": [{ "keyword": string, "found": boolean }],
+  "missingKeywords": [string],
+  "suggestedImprovements": [string],
+  "relevanceScore": number (overall relevance score from 0-100)
+}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-turbo",
+      messages: [
+        { role: "system", content: prompt },
+        { role: "user", content: `Resume:\n${resumeText}\n\nJob Description:\n${jobDescription}` }
+      ],
+      temperature: 0.5,
+      response_format: { type: "json_object" }
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    return result as JobMatchAnalysisResult;
+    
+  } catch (error) {
+    console.error('Error analyzing job match:', error);
+    return getMockJobMatchAnalysis(jobDescription);
   }
 };

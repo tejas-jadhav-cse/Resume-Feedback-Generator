@@ -4,7 +4,7 @@
 
 ![Resume Feedback Generator Banner](https://placehold.co/1200x300?text=Resume+Feedback+Generator)
 
-**[✅ Live Demo](https://resume-feedback-generator.vercel.app/) | [📚 Documentation](#how-it-works) | [🚀 Getting Started](#getting-started) | [📱 Features](#key-features) | [🛠️ Tech Stack](#technology-stack)**
+**[✅ Live Demo](https://resume-feedback.netlify.app/) | [📚 Documentation](#how-it-works) | [🚀 Getting Started](#getting-started) | [📱 Features](#key-features) | [🛠️ Tech Stack](#technology-stack)**
 
 </div>
 
@@ -15,6 +15,12 @@
 This fully client-side app provides actionable suggestions, section-by-section analysis, and a numerical score to help you understand your resume's strengths and weaknesses.
 
 ![Resume Feedback Generator Screenshot](https://placehold.co/800x450?text=Resume+Feedback+Screenshot)
+
+<div align="center">
+  <img src="https://placehold.co/250x500?text=Resume+Analytics" alt="Resume Analytics" width="250px" />
+  <img src="https://placehold.co/250x500?text=Job+Match" alt="Job Match Analysis" width="250px" />
+  <img src="https://placehold.co/250x500?text=ATS+Check" alt="ATS Compatibility" width="250px" />
+</div>
 
 ## ✨ Key Features
 
@@ -33,10 +39,35 @@ This fully client-side app provides actionable suggestions, section-by-section a
   - **Section-by-Section Analysis:** Targeted feedback for each resume component
   - **Actionable Suggestions:** Concrete recommendations for improvement
 
-- **💾 Export & Sharing**
+- **🎯 Job Match Analysis**
+  - Compare your resume against job descriptions
+  - Get keyword match percentage and suggestions
+  - Identify missing skills and experience
+  - Improve application targeting for specific roles
+
+- **🤖 ATS Compatibility Check**
+  - Verify if your resume works with Applicant Tracking Systems
+  - Check formatting, keywords, and structure
+  - Get ATS-specific improvement recommendations
+  - Boost your resume's chances of passing automated filters
+
+- **📈 Resume Analytics**
+  - Visual breakdown of your skills and experience
+  - Identify experience gaps and strengths
+  - Skills categorization (technical, soft, domain)
+  - Experience metrics and career progression analysis
+
+- **📋 Resume Templates**
+  - Access professional resume templates
+  - Different formats for various career stages
+  - Easy to copy and customize
+  - Best practices built into each template
+
+- **👥 Collaboration & Sharing**
+  - Share your resume securely for feedback
+  - Request reviews from mentors and coaches
   - Export feedback to PDF for later reference
   - Clean, professionally formatted reports
-  - Easy to share with mentors or career coaches
 
 - **🎨 Modern User Experience**
   - Dark/Light mode toggle with system preference detection
@@ -67,8 +98,13 @@ This fully client-side app provides actionable suggestions, section-by-section a
 - **PDF Processing**: 
   - **pdf.js** for PDF parsing and text extraction
   - **html2pdf.js** for exporting feedback to PDF
-- **AI Integration**: OpenAI API (GPT model) for resume analysis
+- **AI Integration**: 
+  - OpenAI API (GPT-4 Turbo) for comprehensive resume analysis
+  - Advanced job matching algorithm for targeted feedback
+  - ATS simulation for compatibility testing
+- **Data Visualization**: Custom skill and experience analytics
 - **Build Tools**: Vite for fast development and optimized production builds
+- **Collaboration**: Built-in sharing and feedback collection system
 
 ## 💻 Getting Started
 
@@ -84,7 +120,7 @@ This fully client-side app provides actionable suggestions, section-by-section a
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/resume-feedback-generator.git
+git clone https://github.com/tejas-jadhav-cse/resume-feedback-generator.git
 
 # Navigate to the project directory
 cd resume-feedback-generator
@@ -130,15 +166,30 @@ graph TD
     A -->|Paste Text| C[Text Input]
     B -->|Extract Text| D[Resume Text Processing]
     C --> D
-    D -->|API Request| E[OpenAI GPT Analysis]
-    E -->|JSON Response| F[Structured Feedback]
-    F -->|Display| G[Feedback Categories]
-    G -->|Export| H[PDF Report]
+    D --> E[Analysis Hub]
+    
+    E -->|General Analysis| F[OpenAI GPT Analysis]
+    E -->|Job Match| J[Job Description Comparison]
+    E -->|ATS| K[ATS Compatibility Check]
+    E -->|Analytics| L[Skills & Experience Analytics]
+    
+    F -->|JSON Response| G[Structured Feedback]
+    J --> M[Match Percentage & Keyword Analysis]
+    K --> N[ATS Score & Formatting Recommendations]
+    L --> O[Visual Skills & Experience Breakdown]
+    
+    G -->|Display| H[Feedback Categories]
+    H -->|Export| I[PDF Report]
+    
+    P[Templates] --> Q[Resume Samples]
+    D --> R[Collaboration & Sharing]
     
     style A fill:#d0e8f2,stroke:#4a9ed9,stroke-width:2px
     style E fill:#f2e8d0,stroke:#d9b44a,stroke-width:2px
     style F fill:#e8f2d0,stroke:#9ed94a,stroke-width:2px
-    style H fill:#f2d0e8,stroke:#d94a9e,stroke-width:2px
+    style J fill:#f2d0e8,stroke:#d94a9e,stroke-width:2px
+    style K fill:#d0f2e8,stroke:#4ad9b4,stroke-width:2px
+    style L fill:#e8d0f2,stroke:#9e4ad9,stroke-width:2px
 ```
 
 ### Resume Analysis
@@ -281,7 +332,7 @@ The Resume Feedback Generator is fully responsive and optimized for mobile devic
 
 Contributions are welcome! Here's how you can help improve the Resume Feedback Generator:
 
-1. **Report Issues**: Found a bug or have a feature request? [Open an issue](https://github.com/yourusername/resume-feedback-generator/issues).
+1. **Report Issues**: Found a bug or have a feature request? [Open an issue](https://github.com/tejas-jadhav-cse/resume-feedback-generator/issues).
 
 2. **Submit PRs**: Feel free to fork the project and submit pull requests.
 
@@ -307,7 +358,6 @@ If you find this project helpful, consider:
 
 - Giving it a ⭐ on GitHub
 - Sharing it with friends and colleagues
-- [Buying me a coffee](https://www.buymeacoffee.com/yourusername)
 
 ## 📄 License
 
@@ -325,15 +375,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Have questions or feedback? Reach out through:
 
-- GitHub Issues: [Open an issue](https://github.com/yourusername/resume-feedback-generator/issues)
-- Email: your.email@example.com
-- Twitter: [@YourTwitterHandle](https://twitter.com/YourTwitterHandle)
+- GitHub Issues: [Open an issue](https://github.com/tejas-jadhav-cse/resume-feedback-generator/issues)
+- Email: tejas.jadhav.cse@gmail.com
 
 ---
 
 <div align="center">
 
-Made with ❤️ by [Your Name](https://github.com/yourusername)
+Made with ❤️ by [Tejas Jadhav](https://github.com/tejas-jadhav-cse)
 
 </div>
   },

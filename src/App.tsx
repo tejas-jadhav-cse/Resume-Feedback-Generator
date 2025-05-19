@@ -9,17 +9,26 @@ import TextInputSection from './components/TextInputSection'
 import LoadingIndicator from './components/LoadingIndicator'
 import FeedbackCard from './components/FeedbackCard'
 import ThemeToggle from './components/ThemeToggle'
+import JobMatchAnalysis from './components/JobMatchAnalysis'
+import JobMatchResult from './components/JobMatchResult'
+import ResumeTemplates from './components/ResumeTemplates'
+import ATSSimulator from './components/ATSSimulator'
+import ResumeAnalytics from './components/ResumeAnalytics'
+import CollaborationShare from './components/CollaborationShare'
 
 // Utils
 import { getAIFeedback } from './utils/openaiUtils'
 import type { ResumeFeedback } from './utils/openaiUtils'
+import type { MatchAnalysisResult } from './components/JobMatchAnalysis'
 
 function App() {
   const [resumeText, setResumeText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [feedback, setFeedback] = useState<ResumeFeedback | null>(null)
+  const [jobMatchData, setJobMatchData] = useState<MatchAnalysisResult | null>(null)
   const [apiKey, setApiKey] = useState(localStorage.getItem('openai_api_key') || '')
   const [showApiInput, setShowApiInput] = useState(false)
+  const [activeTab, setActiveTab] = useState<'feedback' | 'jobMatch'>('feedback')
 
   const handleResumeTextExtracted = (text: string) => {
     setResumeText(text)
@@ -44,6 +53,7 @@ function App() {
 
       const result = await getAIFeedback(resumeText, apiKey)
       setFeedback(result)
+      setActiveTab('feedback')
     } catch (error) {
       console.error('Error generating feedback:', error)
       alert('Error generating feedback. Please try again.')
@@ -52,9 +62,16 @@ function App() {
     }
   }
 
+  const handleJobMatchAnalysisComplete = (matchData: MatchAnalysisResult) => {
+    setJobMatchData(matchData)
+    setActiveTab('jobMatch')
+  }
+
   const handleReset = () => {
     setResumeText('')
     setFeedback(null)
+    setJobMatchData(null)
+    setActiveTab('feedback')
   }
 
   const handleApiKeySave = () => {
@@ -74,7 +91,7 @@ function App() {
         >
           <Header />
 
-          {!feedback ? (
+          {!feedback && !jobMatchData ? (
             <>
               <motion.div 
                 className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700"
@@ -110,16 +127,18 @@ function App() {
                     </button>
                   </div>
                   
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={handleGenerateFeedback}
-                    disabled={!resumeText.trim() || isLoading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium 
-                              disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Generate Feedback
-                  </motion.button>
+                  <div className="flex gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleGenerateFeedback}
+                      disabled={!resumeText.trim() || isLoading}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium 
+                                disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Generate Feedback
+                    </motion.button>
+                  </div>
                 </motion.div>
                 
                 <AnimatePresence>
@@ -169,14 +188,62 @@ function App() {
                   </motion.div>
                 )}
               </AnimatePresence>
+              
+              {resumeText.trim() && !isLoading && (
+                <>
+                  <ResumeAnalytics resumeText={resumeText} />
+                
+                  <JobMatchAnalysis 
+                    resumeText={resumeText} 
+                    apiKey={apiKey} 
+                    onMatchAnalysisComplete={handleJobMatchAnalysisComplete} 
+                  />
+                  
+                  <ATSSimulator resumeText={resumeText} />
+                  
+                  <CollaborationShare resumeText={resumeText} />
+                </>
+              )}
+              
+              {!feedback && !jobMatchData && !isLoading && (
+                <ResumeTemplates />
+              )}
             </>
           ) : (
             <>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mb-6 flex justify-end"
+                className="mb-6 flex justify-between items-center"
               >
+                <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                  {feedback && (
+                    <button
+                      onClick={() => setActiveTab('feedback')}
+                      className={`px-4 py-2 text-sm font-medium rounded-md ${
+                        activeTab === 'feedback' 
+                          ? 'bg-white dark:bg-slate-700 shadow' 
+                          : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      Resume Feedback
+                    </button>
+                  )}
+                  
+                  {jobMatchData && (
+                    <button
+                      onClick={() => setActiveTab('jobMatch')}
+                      className={`px-4 py-2 text-sm font-medium rounded-md ${
+                        activeTab === 'jobMatch' 
+                          ? 'bg-white dark:bg-slate-700 shadow' 
+                          : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      Job Match Analysis
+                    </button>
+                  )}
+                </div>
+                
                 <button
                   onClick={handleReset}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
@@ -189,7 +256,31 @@ function App() {
                 </button>
               </motion.div>
               
-              <FeedbackCard feedback={feedback} />
+              <AnimatePresence mode="wait">
+                {activeTab === 'feedback' && feedback && (
+                  <motion.div
+                    key="feedback"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <FeedbackCard feedback={feedback} />
+                  </motion.div>
+                )}
+                
+                {activeTab === 'jobMatch' && jobMatchData && (
+                  <motion.div
+                    key="jobMatch"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <JobMatchResult matchData={jobMatchData} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
           
