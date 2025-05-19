@@ -333,7 +333,7 @@ Have questions or feedback? Reach out through:
 
 <div align="center">
 
-Made with ❤️ by [Your Name](https://github.com/yourusername)
+Made with ❤️ by [Tejas jadhav](https://github.com/tejas-jadhav-cse)
 
 </div>
   },
