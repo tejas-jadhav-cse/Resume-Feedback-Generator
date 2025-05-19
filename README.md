@@ -1,54 +1,95 @@
-# React + TypeScript + Vite
+# Resume Feedback Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, minimalistic web application that allows users to upload or paste their resume and receive structured, actionable feedback. This fully client-side app uses AI to analyze resumes and provide detailed feedback to help users improve their job application materials.
 
-Currently, two official plugins are available:
+![Resume Feedback Generator Screenshot](https://placehold.co/600x400?text=Resume+Feedback+Generator)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Drag & Drop PDF Upload**: Easily upload your resume in PDF format
+- **Text Paste Option**: Alternatively, paste the plain text of your resume
+- **AI-Powered Feedback**: Get detailed, structured feedback on your resume
+- **Section-by-Section Analysis**: Receive specific feedback for each section of your resume
+- **Score Assessment**: Get a numerical score to understand your resume's overall strength
+- **Actionable Suggestions**: Receive concrete improvement recommendations
+- **PDF Export**: Export your feedback to PDF for later reference
+- **Dark/Light Mode**: Choose your preferred visual theme
+- **Mobile Responsive**: Works seamlessly on both desktop and mobile devices
+- **Client-Side Only**: No server required, all processing happens in your browser (except OpenAI API calls)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Technologies Used
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **React**: Frontend library for building user interfaces
+- **TypeScript**: Type-safe JavaScript
+- **Tailwind CSS**: Utility-first CSS framework for styling
+- **Framer Motion**: Animation library for smooth transitions
+- **pdf.js**: PDF parsing library
+- **html2pdf.js**: PDF export functionality
+- **OpenAI API**: For generating intelligent resume feedback
+- **Vite**: Fast build tooling
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or newer)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/resume-feedback-generator.git
+   cd resume-feedback-generator
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+### Usage
+
+1. Upload your resume PDF or paste its text
+2. Add your OpenAI API key (or use the mock feedback for testing)
+3. Click "Generate Feedback"
+4. Review your feedback in the categories provided
+5. Export to PDF if desired
+
+## Deployment
+
+This application can be easily deployed to services like Vercel, Netlify, or GitHub Pages:
+
+```bash
+npm run build
+# or
+yarn build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The build artifacts will be in the `dist` directory.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Customization
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
+You can modify the feedback prompts, UI themes, and other aspects of the application by editing the following files:
+
+- `src/utils/openaiUtils.ts`: Modify the AI prompt or adjust mock feedback
+- `tailwind.config.js`: Customize the design system colors and other visual aspects
+- `src/components/FeedbackCard.tsx`: Change how feedback is displayed
+
+## License
+
+MIT
   },
 })
 ```
