@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DocumentDuplicateIcon, ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { getMockJobMatchAnalysis } from '../utils/openaiUtils';
 
 interface JobMatchAnalysisProps {
   resumeText: string;
@@ -27,32 +28,10 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ resumeText, apiKey,
     }
     
     setIsAnalyzing(true);
-    
     try {
-      // In a real implementation, this would use the OpenAI API
-      // For now, we'll simulate with a timeout and mock data
+      // Use our enhanced mock function to generate realistic job match feedback
       setTimeout(() => {
-        const mockResult: MatchAnalysisResult = {
-          overallMatch: Math.floor(Math.random() * 30) + 50, // 50-80%
-          keywordMatches: [
-            { keyword: 'React', found: true },
-            { keyword: 'TypeScript', found: true },
-            { keyword: 'Team leadership', found: Math.random() > 0.5 },
-            { keyword: 'Project management', found: Math.random() > 0.5 },
-            { keyword: 'Agile methodology', found: Math.random() > 0.3 },
-            { keyword: 'CI/CD', found: Math.random() > 0.7 }
-          ],
-          missingKeywords: ['Docker', 'Kubernetes', 'AWS', 'GraphQL'].filter(() => Math.random() > 0.5),
-          suggestedImprovements: [
-            'Add specific examples of React project implementations',
-            'Highlight your experience with CI/CD pipelines',
-            'Include metrics from past projects showing quantifiable results',
-            'Mention your experience with cloud platforms like AWS',
-            'Emphasize your Agile methodology experience'
-          ],
-          relevanceScore: Math.floor(Math.random() * 20) + 60
-        };
-        
+        const mockResult = getMockJobMatchAnalysis(jobDescription, resumeText);
         onMatchAnalysisComplete(mockResult);
         setIsAnalyzing(false);
       }, 2000);

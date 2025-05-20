@@ -26,14 +26,8 @@ export const getMockFeedback = (resumeText: string = ''): ResumeFeedback => {
   const sections: {[key: string]: string} = {};
   
   // Dynamic score that will be more varied and responds to content
-  let scoreBase = 65; // Starting point
+  let baseScore = 65; // Starting point
   let scoreAdjustment = 0;
-  
-  // Add unique identifier for this resume, including current date to ensure variety
-  const today = new Date().toDateString();
-  const uniqueId = hashString(resumeText + today);
-  const uniqueVariance = (uniqueId % 10) - 5; // -5 to +4 variance based on content and date
-  scoreBase += uniqueVariance;
   
   // Process resume text for more dynamic feedback
   if (resumeText) {
@@ -181,17 +175,12 @@ export const getMockFeedback = (resumeText: string = ''): ResumeFeedback => {
       scoreAdjustment -= 8;
     }
     
-    // Education section - add more variability
+    // Education section
     if (extractedSections.includes('education') || extractedSections.includes('academic background')) {
       const hasDegreeMention = /degree|bachelor|master|phd|diploma|certificate/i.test(resumeText);
-      const hasDateMention = /20\d{2}|19\d{2}|graduated|completed/i.test(resumeText);
-      
-      if (hasDegreeMention && hasDateMention) {
-        sections['Education'] = `Your education section is clearly presented with both degree and date information. Consider adding any relevant coursework or academic achievements that relate to your target role.`;
-        scoreAdjustment += 5;
-      } else if (hasDegreeMention) {
-        sections['Education'] = `Your education section mentions your degree(s), but would benefit from clear graduation dates for better context.`;
-        scoreAdjustment += 2;
+      if (hasDegreeMention) {
+        sections['Education'] = `Your education section is clearly presented with necessary details. Consider adding any relevant coursework or academic achievements that relate to your target role.`;
+        scoreAdjustment += 4;
       } else {
         sections['Education'] = `Your education section could be enhanced with more details about your degrees, relevant coursework, or academic achievements.`;
         scoreAdjustment += 0;
@@ -203,25 +192,13 @@ export const getMockFeedback = (resumeText: string = ''): ResumeFeedback => {
     
     // Additional sections commonly found in strong resumes
     if (extractedSections.includes('projects')) {
-      const hasDetailedProjects = /github|link|url|developed|built|created|team|solo/i.test(resumeText);
-      if (hasDetailedProjects) {
-        sections['Projects'] = `Your projects section effectively showcases practical application of your skills with good detail and context. Continue highlighting the technologies used and measurable outcomes for each project.`;
-        scoreAdjustment += 7;
-      } else {
-        sections['Projects'] = `Including a projects section demonstrates initiative, but try adding more details about technologies used and quantifiable results for each project.`;
-        scoreAdjustment += 3;
-      }
+      sections['Projects'] = `Including a projects section demonstrates initiative and practical application of your skills. Make sure each project highlights specific technologies used and measurable outcomes.`;
+      scoreAdjustment += 5;
     }
     
     if (extractedSections.includes('certifications') || extractedSections.includes('licenses')) {
-      const hasRecent = /202\d|2019|current|ongoing/i.test(resumeText);
-      if (hasRecent) {
-        sections['Certifications'] = `Your recent certifications add credibility to your qualifications and show commitment to ongoing professional development. Well done.`;
-        scoreAdjustment += 5;
-      } else {
-        sections['Certifications'] = `Your certifications add credibility to your qualifications. Consider updating with more recent certifications relevant to your target roles.`;
-        scoreAdjustment += 2;
-      }
+      sections['Certifications'] = `Your certifications add credibility to your qualifications. Keep these updated and ensure they're relevant to your target roles.`;
+      scoreAdjustment += 4;
     }
     
     // Add any other identified sections with custom feedback
@@ -256,19 +233,47 @@ export const getMockFeedback = (resumeText: string = ''): ResumeFeedback => {
       sections['Education'] = `Including your educational background provides completeness to your professional story, even if your experience is more relevant.`;
       scoreAdjustment -= 3;
     }
+
+    // Check for common technical terms to personalize feedback
+    const techKeywords = ['python', 'javascript', 'java', 'react', 'angular', 'node', 'aws', 'cloud', 'database', 'sql', 'api'];
+    const foundTechKeywords = techKeywords.filter(term => resumeText.toLowerCase().includes(term.toLowerCase()));
+    
+    if (foundTechKeywords.length > 0 && !sections['Technical Skills']) {
+      sections['Technical Skills'] = `Good mention of ${foundTechKeywords.join(', ')}, but consider organizing these by proficiency level and adding more context about how you've applied them in your work.`;
+    }
+
+    // Calculate final score with some randomness to ensure different scores for different resumes
+    const randomFactor = Math.floor(Math.random() * 5) - 2; // -2 to +2 random adjustment
+    const calculatedScore = Math.max(30, Math.min(98, baseScore + scoreAdjustment + randomFactor));
+    
+    return {
+      overallImpression: impression,
+      sectionFeedback: sections,
+      suggestions: selectSuggestions(resumeText),
+      score: calculatedScore
+    };
   } else {
     // Fallback for empty resume text
     impression = "This appears to be an empty resume. Please upload your resume content for a detailed analysis.";
     sections['Content'] = "No content was found to analyze. Please provide your resume text to receive specific feedback.";
-    scoreAdjustment = -30;
     
     // Default sections
     sections['Professional Summary'] = "Unable to analyze - no content provided";
     sections['Work Experience'] = "Unable to analyze - no content provided";
     sections['Skills'] = "Unable to analyze - no content provided";
     sections['Education'] = "Unable to analyze - no content provided";
+    
+    return {
+      overallImpression: impression,
+      sectionFeedback: sections,
+      suggestions: generateDefaultSuggestions(),
+      score: 0
+    };
   }
-  
+};
+
+// Helper function to select relevant suggestions based on resume content
+const selectSuggestions = (resumeText: string): string[] => {
   // Array of possible suggestions
   const allSuggestions = [
     'Quantify your achievements with metrics (e.g., "Increased sales by 25%" instead of "Increased sales")',
@@ -293,40 +298,7 @@ export const getMockFeedback = (resumeText: string = ''): ResumeFeedback => {
     'Have your resume reviewed by someone in your target industry for specialized feedback'
   ];
   
-  // Calculate final score with some randomness to ensure different scores for different resumes
-  const randomFactor = Math.floor(Math.random() * 5) - 2; // -2 to +2 random adjustment
-  
-  // Add content-specific variance using the hash of the text and the current date
-  // This ensures different results even for the same resume on different days
-  const dateVariance = new Date().getDate() % 5 - 2; // -2 to +2 based on day of month
-  const contentVariance = resumeText ? (hashString(resumeText + today) % 6) - 2 : 0; // -2 to +3 content-based variance
-  
-  const calculatedScore = Math.max(30, Math.min(98, scoreBase + scoreAdjustment + randomFactor + contentVariance + dateVariance));
-  
-  // Check for common technical terms to personalize feedback if not already added
-  if (resumeText && !sections['Technical Skills']) {
-    const techKeywords = ['python', 'javascript', 'java', 'react', 'angular', 'node', 'aws', 'cloud', 'database', 'sql', 'api'];
-    const foundTechKeywords = techKeywords.filter(term => resumeText.toLowerCase().includes(term.toLowerCase()));
-    
-    if (foundTechKeywords.length > 0) {
-      sections['Technical Skills'] = `Good mention of ${foundTechKeywords.join(', ')}, but consider organizing these by proficiency level and adding more context about how you've applied them in your work.`;
-    }
-  }
-  
-  return {
-    overallImpression: impression,
-    sectionFeedback: sections,
-    suggestions: selectRelevantSuggestions(resumeText, allSuggestions, today),
-    score: calculatedScore
-  };
-};
-
-// Helper function to select relevant suggestions based on resume content
-function selectRelevantSuggestions(resumeText: string, allSuggestions: string[], dateString?: string): string[] {  
-  // Create a unique fingerprint for this resume to ensure different suggestions for different resumes
-  // Include the current date to vary suggestions for the same resume on different days
-  const today = dateString || new Date().toDateString();
-  const uniqueFingerprint = hashString(resumeText + today);
+  const lowerCaseResumeText = resumeText.toLowerCase();
   
   // Prioritize suggestions based on content analysis
   const prioritizedSuggestions = [...allSuggestions];
@@ -357,14 +329,14 @@ function selectRelevantSuggestions(resumeText: string, allSuggestions: string[],
     moveToTop(prioritizedSuggestions, 'Add a brief technologies/tools section for technical roles');
     moveToTop(prioritizedSuggestions, 'Add specific technical skills with proficiency levels');
   }
-    // Select 5 unique suggestions with deterministic but varied selection based on content fingerprint
+  
+  // Randomly select 5 unique suggestions with priority given to the top ones
   const suggestions: string[] = [];
   const usedIndices = new Set<number>();
   
   // First try to pick from the first 8 suggestions (which include our prioritized ones)
-  // Use the uniqueFingerprint to ensure deterministic but different results for different content
-  for (let i = 0; i < 3 && suggestions.length < 3; i++) {
-    const index = (uniqueFingerprint + i * 7) % Math.min(8, prioritizedSuggestions.length);
+  while (suggestions.length < 3 && prioritizedSuggestions.length > 0) {
+    const index = Math.floor(Math.random() * Math.min(8, prioritizedSuggestions.length));
     if (!usedIndices.has(index)) {
       suggestions.push(prioritizedSuggestions[index]);
       usedIndices.add(index);
@@ -372,15 +344,15 @@ function selectRelevantSuggestions(resumeText: string, allSuggestions: string[],
     }
   }
   
-  // Fill the rest with suggestions influenced by content fingerprint
+  // Fill the rest with random suggestions
   while (suggestions.length < 5 && prioritizedSuggestions.length > 0) {
-    const index = (uniqueFingerprint + suggestions.length * 13) % prioritizedSuggestions.length;
+    const index = Math.floor(Math.random() * prioritizedSuggestions.length);
     suggestions.push(prioritizedSuggestions[index]);
     prioritizedSuggestions.splice(index, 1);
   }
   
   return suggestions;
-}
+};
 
 // Helper function to move matching suggestions to the top of the array
 function moveToTop(suggestions: string[], startsWithText: string): void {
@@ -392,15 +364,21 @@ function moveToTop(suggestions: string[], startsWithText: string): void {
     const [suggestion] = suggestions.splice(index, 1);
     suggestions.unshift(suggestion);
   }
-};
+}
 
+// Generate default suggestions when no resume is provided
+function generateDefaultSuggestions(): string[] {
+  return [
+    'Start by creating a clear and concise resume with your contact information at the top',
+    'Include a strong professional summary that highlights your key qualifications',
+    'Organize your experience section chronologically with most recent positions first',
+    'Include a skills section that highlights both technical and soft skills',
+    'Add your education and any relevant certifications or training'
+  ];
+}
 
 // Mock job match analysis for testing or when API key isn't available
 export const getMockJobMatchAnalysis = (jobDescription: string, resumeText: string = ''): JobMatchAnalysisResult => {
-  // Generate a unique identifier based on content and current date
-  const jobMatchDate = new Date().toDateString();
-  const jobMatchHash = hashString(resumeText + jobDescription + jobMatchDate);
-  
   // Expanded list of common keywords across various industries
   const keywords = [
     // Tech/Development
@@ -449,13 +427,10 @@ export const getMockJobMatchAnalysis = (jobDescription: string, resumeText: stri
     });
   }
   
-  // If no keywords were found, use a deterministic but varied selection
+  // If no keywords were found, use a random selection
   const selectedKeywords = extractedKeywords.length > 0 
     ? [...new Set(extractedKeywords)].slice(0, Math.min(10, extractedKeywords.length))
-    : keywords.sort((a, b) => {
-        // Use hash to ensure deterministic but varied sorting
-        return hashString(a + jobMatchHash) - hashString(b + jobMatchHash);
-      }).slice(0, 10);
+    : keywords.sort(() => Math.random() - 0.5).slice(0, 10);
   
   // Determine whether each keyword is found in the resume
   const keywordMatches = selectedKeywords.map(keyword => {
@@ -467,11 +442,10 @@ export const getMockJobMatchAnalysis = (jobDescription: string, resumeText: stri
         found: isFound
       };
     } else {
-      // Otherwise use deterministic probability influenced by hash
-      // This ensures different but consistent results for the same input
+      // Otherwise use random probability (40-60% chance of being found to create more realistic variability)
       return {
         keyword,
-        found: (hashString(keyword + jobMatchHash.toString()) % 100) > 35 // 65% chance
+        found: Math.random() > 0.4 + (Math.random() * 0.2)
       };
     }
   });
@@ -480,38 +454,32 @@ export const getMockJobMatchAnalysis = (jobDescription: string, resumeText: stri
     .filter(match => !match.found)
     .map(match => match.keyword);
   
-  // Add some deterministically selected additional missing keywords 
+  // Add some random additional missing keywords that might be relevant
   const additionalMissing = keywords
     .filter(keyword => !selectedKeywords.includes(keyword))
-    .sort((a, b) => {
-      return hashString(a + jobMatchHash) - hashString(b + jobMatchHash);
-    })
+    .sort(() => Math.random() - 0.5)
     .slice(0, 3);
   
   const allMissing = [...missingKeywords, ...additionalMissing];
-  // Calculate match based on found keywords percentage with deterministic variation
+  
+  // Calculate match based on found keywords percentage with some randomization
+  // but ensure it relates to actual keywords if we have resume text
   const foundCount = keywordMatches.filter(k => k.found).length;
   let overallMatch = Math.floor((foundCount / keywordMatches.length) * 100);
   
-  // Add some minor randomization to the match percentage based on job match hash
-  const randomOffset = (jobMatchHash % 15) - 7; // -7 to +7 range
+  // Add some minor randomization to the match percentage
+  // Using a seeded random value based on content for consistency when reanalyzing same content
+  const contentHash = hashString(resumeText + jobDescription);
+  const randomOffset = (contentHash % 15) - 7; // -7 to +7 range
+  
   overallMatch = Math.max(30, Math.min(95, overallMatch + randomOffset));
   
   // Generate improvement suggestions based on missing keywords
   const suggestedImprovements: string[] = [];
   
   if (allMissing.length > 0) {
-    // Choose 1-2 missing keywords based on hash to ensure variability
-    const missingToUse = jobMatchHash % 3 === 0 ? 1 : 2;
-    const startIndex = jobMatchHash % Math.max(1, allMissing.length);
-    
-    const selectedMissing = allMissing.slice(startIndex, startIndex + missingToUse);
-    if (selectedMissing.length > 0) {
-      suggestedImprovements.push(`Add specific experience with ${selectedMissing.join(' and ')}`);
-    }
-  }
-  
-  if (suggestedImprovements.length === 0) {
+    suggestedImprovements.push(`Add specific experience with ${allMissing.slice(0, 2).join(' and ')}`);
+  } else {
     suggestedImprovements.push('Further develop your expertise in key technologies mentioned in the job description');
   }
   
@@ -529,18 +497,17 @@ export const getMockJobMatchAnalysis = (jobDescription: string, resumeText: stri
     'Show progression and growth in your career history'
   ];
   
-  // Add 4 general suggestions using job match hash to ensure different but deterministic selection
+  // Add 4 general suggestions
   while (suggestedImprovements.length < 5) {
-    const index = (jobMatchHash + suggestedImprovements.length * 17) % generalSuggestions.length;
-    const suggestion = generalSuggestions[index];
+    const randomIndex = (contentHash + suggestedImprovements.length) % generalSuggestions.length;
+    const suggestion = generalSuggestions[randomIndex];
     if (!suggestedImprovements.includes(suggestion)) {
       suggestedImprovements.push(suggestion);
     } else {
-      // If we already used this suggestion, pick using hash
+      // If we already used this suggestion, pick randomly
       const unusedSuggestions = generalSuggestions.filter(s => !suggestedImprovements.includes(s));
       if (unusedSuggestions.length > 0) {
-        const altIndex = jobMatchHash % unusedSuggestions.length;
-        suggestedImprovements.push(unusedSuggestions[altIndex]);
+        suggestedImprovements.push(unusedSuggestions[0]);
       }
     }
   }
@@ -548,7 +515,7 @@ export const getMockJobMatchAnalysis = (jobDescription: string, resumeText: stri
   // Calculate relevance score (slightly different from match percentage)
   const relevanceScore = Math.floor(
     (overallMatch * 0.7) + // 70% based on keyword match
-    ((jobMatchHash % 10) + 5) + // 5-15 random factor based on content
+    ((contentHash % 10) + 5) + // 5-15 random factor based on content
     (resumeText ? Math.min(15, resumeText.length / 500) : 10) // Length factor (more content = potentially more relevant)
   );
   
@@ -559,64 +526,6 @@ export const getMockJobMatchAnalysis = (jobDescription: string, resumeText: stri
     suggestedImprovements,
     relevanceScore: Math.min(98, Math.max(40, relevanceScore)) // Keep it between 40-98
   };
-};
-
-// Function to get feedback from OpenAI using fetch (browser-safe, not for production)
-export const getAIFeedback = async (resumeText: string, apiKey: string): Promise<ResumeFeedback> => {
-  if (!apiKey || typeof apiKey !== 'string' || apiKey.length < 20) {
-    console.warn('No valid API key provided, returning mock feedback');
-    return getMockFeedback(resumeText);
-  }
-
-  try {
-    const sessionId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    const prompt = `You are an expert resume reviewer. Carefully analyze the following resume and provide feedback in this JSON format:\n{\n  \"overallImpression\": \"A concise, content-specific summary of strengths and weaknesses (3-5 sentences)\",\n  \"sectionFeedback\": {\n    \"Professional Summary\": \"Feedback specific to this section, or say if missing\",\n    \"Work Experience\": \"Feedback specific to this section, or say if missing\",\n    \"Skills\": \"Feedback specific to this section, or say if missing\",\n    \"Education\": \"Feedback specific to this section, or say if missing\",\n    ...other sections as found\n  },\n  \"suggestions\": [\"5 actionable, resume-specific improvement suggestions\"],\n  \"score\": 0 // integer 0-100, based on resume quality\n}\n\nGuidelines:\n- Tailor all feedback to the actual content of the resume. Do not use generic phrases.\n- If a section is missing, state that and suggest what to add.\n- Suggestions must be actionable and relevant to the provided resume.\n- Vary your feedback and scoring for each request, even for similar resumes.\n- Use the session ID (${sessionId}) to ensure unique responses.\n\nResume:\n${resumeText}\n`;
-
-    const dynamicTemperature = 0.8 + (Math.random() * 0.2); // 0.8-1.0
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: "You are an expert resume reviewer. Always provide JSON as specified. Never use generic feedback." },
-          { role: "user", content: prompt }
-        ],
-        temperature: dynamicTemperature,
-        max_tokens: 1500,
-        user: sessionId
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      // Check for quota error and show a user-friendly message
-      if (response.status === 429 && errorText.includes('insufficient_quota')) {
-        alert('You have exceeded your OpenAI API quota. Please check your OpenAI account billing and usage.');
-      }
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
-    }
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) throw new Error('No content in OpenAI response');
-
-    // Try to extract JSON from the response
-    let jsonString = content;
-    const jsonMatch = content.match(/({[\s\S]*})/);
-    if (jsonMatch) jsonString = jsonMatch[0];
-    const parsed = JSON.parse(jsonString);
-    if (!parsed.overallImpression || !parsed.sectionFeedback || !parsed.suggestions || typeof parsed.score !== 'number') {
-      throw new Error('OpenAI response missing required fields');
-    }
-    return parsed as ResumeFeedback;
-  } catch (error: any) {
-    console.error('Error getting AI feedback:', error?.message || error);
-    return getMockFeedback(resumeText);
-  }
 };
 
 // Simple string hashing function to generate a deterministic number from text
@@ -633,26 +542,98 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
+// Function to get feedback from OpenAI
+export const getAIFeedback = async (resumeText: string, apiKey: string): Promise<ResumeFeedback> => {  
+  try {
+    if (!apiKey) {
+      console.warn('No API key provided, returning mock feedback');
+      return getMockFeedback(resumeText);
+    }
+
+    const openai = new OpenAI({
+      apiKey,
+      dangerouslyAllowBrowser: true // Note: In production, it's better to use a backend service for API calls
+    });
+
+    // Define the prompt - Enhanced for more varied feedback
+    const prompt = `You are a professional resume coach. Review the following resume and provide:
+1. Overall impressions (3-5 sentences) - be specific to the actual content in this resume
+2. Section-by-section feedback with specific improvements for each section
+3. 5 specific, actionable suggestions for improvement that directly relate to this specific resume
+4. A score out of 100 that accurately reflects the quality of this particular resume
+
+Your feedback should be unique and tailored specifically to this resume. 
+Generate different insights each time even for similar resumes.
+Make sure to mention specific details from the resume in your feedback.
+Vary your scoring approach to reflect the actual quality of the resume.
+
+Format your response as valid JSON with the following structure:
+{
+  "overallImpression": "string with overall feedback",
+  "sectionFeedback": {
+    "section name": "feedback for this section",
+    ...other sections
+  },
+  "suggestions": ["suggestion 1", "suggestion 2", ...],
+  "score": number
+}
+
+Here is the resume:
+${resumeText}`;
+
+    // Call OpenAI API with a unique temperature for each request
+    // This ensures different responses even for the same resume
+    const dynamicTemperature = 0.7 + (Math.random() * 0.3); // 0.7-1.0 range
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a professional resume coach who provides detailed, actionable feedback. Always make your feedback specifically tailored to the resume content. Never provide generic feedback." },
+        { role: "user", content: prompt }
+      ],
+      temperature: dynamicTemperature,
+      max_tokens: 1500,
+    });
+
+    // Parse the response
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error('Empty response from OpenAI');
+    }
+
+    try {
+      // Extract JSON from the response (in case there's any extra text)
+      const jsonMatch = content.match(/({[\s\S]*})/);
+      const jsonString = jsonMatch ? jsonMatch[0] : content;
+      
+      return JSON.parse(jsonString) as ResumeFeedback;
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      return getMockFeedback(resumeText);
+    }
+  } catch (error) {
+    console.error('Error getting AI feedback:', error);
+    return getMockFeedback(resumeText);
+  }
+};
+
 // Function to analyze resume against job description
 export const getJobMatchAnalysis = async (
   resumeText: string, 
   jobDescription: string,
   apiKey: string
-): Promise<JobMatchAnalysisResult> => {
+): Promise<JobMatchAnalysisResult> => {  
   try {
     if (!apiKey) {
       console.warn('No API key provided, returning mock job match analysis');
       return getMockJobMatchAnalysis(jobDescription, resumeText);
     }
 
-    // Create a unique session ID to ensure different responses even for the same inputs
-    const sessionId = new Date().getTime().toString() + Math.random().toString(36).substring(2, 9);
-
     const openai = new OpenAI({
       apiKey,
       dangerouslyAllowBrowser: true
     });
-    
+
     // Define the prompt - Enhanced for more varied responses
     const prompt = `Analyze how well the provided resume matches the given job description. Focus on:
 1. Identifying key skills, technologies, and qualifications from the job description
@@ -662,7 +643,6 @@ export const getJobMatchAnalysis = async (
 
 Each time you analyze a resume, ensure you're providing unique insights and specific recommendations.
 Even if analyzing similar resumes against the same job, vary your approach and focus on different aspects.
-This is session ID: ${sessionId} - use this to ensure unique responses.
 
 Format your response as valid JSON with the following structure:
 {
@@ -682,13 +662,12 @@ Format your response as valid JSON with the following structure:
         { role: "user", content: `Resume:\n${resumeText}\n\nJob Description:\n${jobDescription}` }
       ],
       temperature: dynamicTemperature,
-      response_format: { type: "json_object" },
-      user: sessionId // Helps OpenAI distinguish between requests
+      response_format: { type: "json_object" }
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
     return result as JobMatchAnalysisResult;
-      } catch (error) {
+  } catch (error) {
     console.error('Error analyzing job match:', error);
     return getMockJobMatchAnalysis(jobDescription, resumeText);
   }
