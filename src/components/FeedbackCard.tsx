@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DocumentCheckIcon, LightBulbIcon, StarIcon } from '@heroicons/react/24/outline';
+// Import ExportButton component
 import ExportButton from './ExportButton';
 
 interface FeedbackCardProps {
@@ -32,15 +33,14 @@ const FeedbackCard = ({ feedback }: FeedbackCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className="w-full mt-8"
-    >
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
+    >      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div className="flex items-center">
-              <DocumentCheckIcon className="h-6 w-6 text-blue-500 mr-2" />
-              <h2 className="text-xl font-semibold text-slate-800 dark:text-white">Resume Feedback</h2>
+              <DocumentCheckIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 mr-2" />
+              <h2 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-white">Resume Feedback</h2>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-7 sm:ml-0">
               <span className="font-semibold text-slate-700 dark:text-slate-300">Score:</span>
               <span className={`text-lg font-bold ${
                 score >= 80 ? 'text-green-500' : 
@@ -51,9 +51,8 @@ const FeedbackCard = ({ feedback }: FeedbackCardProps) => {
               </span>
             </div>
           </div>
-          
-          {/* Tab navigation */}
-          <div className="flex flex-wrap gap-2 mb-6">
+            {/* Tab navigation */}
+          <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-6">
             <button 
               onClick={() => setActiveTab('overall')}
               className={tabClasses('overall')}

@@ -29,43 +29,89 @@ const JobMatchAnalysis: React.FC<JobMatchAnalysisProps> = ({ resumeText, apiKey,
     
     setIsAnalyzing(true);
     try {
-      // Use our enhanced mock function to generate realistic job match feedback
-      setTimeout(() => {
-        const mockResult = getMockJobMatchAnalysis(jobDescription, resumeText);
-        onMatchAnalysisComplete(mockResult);
-        setIsAnalyzing(false);
-      }, 2000);
+      // Check if a valid API key is provided
+      if (!apiKey || typeof apiKey !== 'string' || apiKey.length < 20) {
+        console.warn('No valid API key provided, using mock job match analysis');
+        setTimeout(() => {
+          const mockResult = getMockJobMatchAnalysis(jobDescription, resumeText);
+          onMatchAnalysisComplete(mockResult);
+          setIsAnalyzing(false);
+        }, 1500);
+        return;
+      }
+
+      // Create a unique session ID to ensure different responses even for the same inputs
+      const sessionId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
       
-      // In production, you would use OpenAI like:
-      /*
-      const openai = new OpenAI({
-        apiKey,
-        dangerouslyAllowBrowser: true
+      // Define the OpenAI API request
+      const prompt = `Analyze how well the provided resume matches the given job description. Focus on:
+1. Identifying key skills, technologies, and qualifications from the job description
+2. Determining if these are present in the resume
+3. Calculating an overall match percentage
+4. Suggesting specific improvements
+
+Each time you analyze a resume, ensure you're providing unique insights and specific recommendations.
+Even if analyzing similar resumes against the same job, vary your approach and focus on different aspects.
+This is session ID: ${sessionId} - use this to ensure unique responses.
+
+Format your response as valid JSON with the following structure:
+{
+  "overallMatch": number (percentage of match from 0-100),
+  "keywordMatches": [{ "keyword": string, "found": boolean }],
+  "missingKeywords": [string],
+  "suggestedImprovements": [string],
+  "relevanceScore": number (overall relevance score from 0-100)
+}`;
+
+      const dynamicTemperature = 0.5 + (Math.random() * 0.3); // 0.5-0.8 range for variability
+      
+      // Make the API call using fetch for better browser compatibility
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: prompt },
+            { role: "user", content: `Resume:\n${resumeText}\n\nJob Description:\n${jobDescription}` }
+          ],
+          temperature: dynamicTemperature,
+          max_tokens: 1500,
+          response_format: { type: "json_object" },
+          user: sessionId
+        })
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        // Check for quota error and show a user-friendly message
+        if (response.status === 429 && errorText.includes('insufficient_quota')) {
+          alert('You have exceeded your OpenAI API quota. Please check your OpenAI account billing and usage.');
+        }
+        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
       
-      const response = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `Analyze a resume against a job description. Evaluate keyword matches, missing skills, and overall match percentage.`
-          },
-          {
-            role: "user",
-            content: `Resume: ${resumeText}\n\nJob Description: ${jobDescription}`
-          }
-        ],
-        temperature: 0.5,
-        response_format: { type: "json_object" }
-      });
-      
-      const result = JSON.parse(response.choices[0].message.content);
+      if (!content) {
+        throw new Error('No content in OpenAI response');
+      }
+
+      // Parse the JSON response
+      const result = JSON.parse(content);
       onMatchAnalysisComplete(result);
-      */
       
-    } catch (error) {
-      console.error('Error analyzing job match:', error);
-      alert('Error analyzing job match. Please try again.');
+    } catch (error: any) {
+      console.error('Error analyzing job match:', error?.message || error);
+      alert('Error analyzing job match. Falling back to sample analysis.');
+      // Fall back to mock analysis
+      const mockResult = getMockJobMatchAnalysis(jobDescription, resumeText);
+      onMatchAnalysisComplete(mockResult);
+    } finally {
       setIsAnalyzing(false);
     }
   };

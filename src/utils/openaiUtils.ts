@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+// Using direct fetch API instead of OpenAI SDK for better browser compatibility
 
 // Interface for the feedback structure
 export interface ResumeFeedback {
@@ -633,25 +633,20 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
-// Function to analyze resume against job description
+// Function to analyze resume against job description using fetch API
 export const getJobMatchAnalysis = async (
   resumeText: string, 
   jobDescription: string,
   apiKey: string
 ): Promise<JobMatchAnalysisResult> => {
+  if (!apiKey || typeof apiKey !== 'string' || apiKey.length < 20) {
+    console.warn('No valid API key provided, returning mock job match analysis');
+    return getMockJobMatchAnalysis(jobDescription, resumeText);
+  }
+
   try {
-    if (!apiKey) {
-      console.warn('No API key provided, returning mock job match analysis');
-      return getMockJobMatchAnalysis(jobDescription, resumeText);
-    }
-
     // Create a unique session ID to ensure different responses even for the same inputs
-    const sessionId = new Date().getTime().toString() + Math.random().toString(36).substring(2, 9);
-
-    const openai = new OpenAI({
-      apiKey,
-      dangerouslyAllowBrowser: true
-    });
+    const sessionId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     
     // Define the prompt - Enhanced for more varied responses
     const prompt = `Analyze how well the provided resume matches the given job description. Focus on:
@@ -675,21 +670,47 @@ Format your response as valid JSON with the following structure:
 
     const dynamicTemperature = 0.5 + (Math.random() * 0.3); // 0.5-0.8 range
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
-      messages: [
-        { role: "system", content: prompt },
-        { role: "user", content: `Resume:\n${resumeText}\n\nJob Description:\n${jobDescription}` }
-      ],
-      temperature: dynamicTemperature,
-      response_format: { type: "json_object" },
-      user: sessionId // Helps OpenAI distinguish between requests
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: prompt },
+          { role: "user", content: `Resume:\n${resumeText}\n\nJob Description:\n${jobDescription}` }
+        ],
+        temperature: dynamicTemperature,
+        max_tokens: 1500,
+        response_format: { type: "json_object" },
+        user: sessionId
+      })
     });
 
-    const result = JSON.parse(response.choices[0].message.content || '{}');
+    if (!response.ok) {
+      const errorText = await response.text();
+      // Check for quota error and show a user-friendly message
+      if (response.status === 429 && errorText.includes('insufficient_quota')) {
+        alert('You have exceeded your OpenAI API quota. Please check your OpenAI account billing and usage.');
+      }
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error('No content in OpenAI response');
+    
+    // Try to extract JSON from the response
+    let jsonString = content;
+    const jsonMatch = content.match(/({[\s\S]*})/);
+    if (jsonMatch) jsonString = jsonMatch[0];
+    
+    const result = JSON.parse(jsonString);
     return result as JobMatchAnalysisResult;
-      } catch (error) {
-    console.error('Error analyzing job match:', error);
+  } catch (error: any) {
+    console.error('Error analyzing job match:', error?.message || error);
     return getMockJobMatchAnalysis(jobDescription, resumeText);
   }
 };

@@ -28,7 +28,7 @@ function App() {
   const [jobMatchData, setJobMatchData] = useState<MatchAnalysisResult | null>(null)
   const [apiKey, setApiKey] = useState(localStorage.getItem('openai_api_key') || '')
   const [showApiInput, setShowApiInput] = useState(false)
-  const [activeTab, setActiveTab] = useState<'feedback' | 'jobMatch'>('feedback')
+  const [activeTab, setActiveTab] = useState<'feedback' | 'jobMatch' | 'analytics' | 'ats'>('feedback')
 
   const handleResumeTextExtracted = (text: string) => {
     setResumeText(text)
@@ -82,8 +82,7 @@ function App() {
   return (
     <>
       <ThemeToggle />
-      
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors py-8 px-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -91,10 +90,34 @@ function App() {
         >
           <Header />
 
-          {!feedback && !jobMatchData ? (
+          {/* Tab Navigation */}
+          <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 mb-6 overflow-x-auto py-2">
+            <button
+              className={`px-3 md:px-4 py-2 rounded-md font-medium text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'feedback' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+              onClick={() => setActiveTab('feedback')}
+            >Resume Feedback</button>
+            <button
+              className={`px-3 md:px-4 py-2 rounded-md font-medium text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'jobMatch' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+              onClick={() => setActiveTab('jobMatch')}
+              disabled={!resumeText.trim()}
+            >Job Match</button>
+            <button
+              className={`px-3 md:px-4 py-2 rounded-md font-medium text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'analytics' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+              onClick={() => setActiveTab('analytics')}
+              disabled={!resumeText.trim()}
+            >Resume Analytics</button>
+            <button
+              className={`px-3 md:px-4 py-2 rounded-md font-medium text-sm md:text-base whitespace-nowrap transition-colors ${activeTab === 'ats' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600'}`}
+              onClick={() => setActiveTab('ats')}
+              disabled={!resumeText.trim()}
+            >ATS Simulator</button>
+          </div>
+
+          {/* Main Content */}
+          {activeTab === 'feedback' && !feedback && !jobMatchData && (
             <>
               <motion.div 
-                className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700"
+                className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 shadow-lg border border-slate-200 dark:border-slate-700"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
@@ -104,7 +127,7 @@ function App() {
                   setIsLoading={setIsLoading} 
                 />
                 
-                <div className="my-6 flex items-center">
+                <div className="my-4 sm:my-6 flex items-center">
                   <div className="flex-grow h-px bg-slate-200 dark:bg-slate-700"></div>
                   <p className="px-3 text-sm text-slate-500 dark:text-slate-400">OR</p>
                   <div className="flex-grow h-px bg-slate-200 dark:bg-slate-700"></div>
@@ -113,12 +136,12 @@ function App() {
                 <TextInputSection onTextInput={handleTextInput} />
                 
                 <motion.div 
-                  className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4"
+                  className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center mb-3 sm:mb-0">
                     <button 
                       onClick={() => setShowApiInput(!showApiInput)}
                       className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
@@ -127,13 +150,13 @@ function App() {
                     </button>
                   </div>
                   
-                  <div className="flex gap-3">
+                  <div className="flex w-full sm:w-auto">
                     <motion.button
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={handleGenerateFeedback}
                       disabled={!resumeText.trim() || isLoading}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium 
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium 
                                 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
                     >
                       Generate Feedback
@@ -149,9 +172,9 @@ function App() {
                       exit={{ height: 0, opacity: 0 }}
                       className="mt-4 overflow-hidden"
                     >
-                      <div className="bg-slate-50 dark:bg-slate-700 p-4 rounded-md">
+                      <div className="bg-slate-50 dark:bg-slate-700 p-3 sm:p-4 rounded-md">
                         <label className="block text-sm font-medium mb-2">OpenAI API Key</label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="password"
                             value={apiKey}
@@ -163,7 +186,7 @@ function App() {
                           />
                           <button
                             onClick={handleApiKeySave}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
+                            className="text-center sm:text-left whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
                           >
                             Save
                           </button>
@@ -183,6 +206,7 @@ function App() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
+                    className="mt-6"
                   >
                     <LoadingIndicator />
                   </motion.div>
@@ -190,111 +214,35 @@ function App() {
               </AnimatePresence>
               
               {resumeText.trim() && !isLoading && (
-                <>
-                  <ResumeAnalytics resumeText={resumeText} />
-                
-                  <JobMatchAnalysis 
-                    resumeText={resumeText} 
-                    apiKey={apiKey} 
-                    onMatchAnalysisComplete={handleJobMatchAnalysisComplete} 
-                  />
-                  
-                  <ATSSimulator resumeText={resumeText} />
-                  
-                  <CollaborationShare resumeText={resumeText} />
-                </>
-              )}
-              
-              {!feedback && !jobMatchData && !isLoading && (
-                <ResumeTemplates />
-              )}
-            </>
-          ) : (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mb-6 flex justify-between items-center"
-              >
-                <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                  {feedback && (
-                    <button
-                      onClick={() => setActiveTab('feedback')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md ${
-                        activeTab === 'feedback' 
-                          ? 'bg-white dark:bg-slate-700 shadow' 
-                          : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700'
-                      }`}
-                    >
-                      Resume Feedback
-                    </button>
-                  )}
-                  
-                  {jobMatchData && (
-                    <button
-                      onClick={() => setActiveTab('jobMatch')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md ${
-                        activeTab === 'jobMatch' 
-                          ? 'bg-white dark:bg-slate-700 shadow' 
-                          : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700'
-                      }`}
-                    >
-                      Job Match Analysis
-                    </button>
-                  )}
+                <div className="mt-6">
+                  <ResumeTemplates />
                 </div>
-                
-                <button
-                  onClick={handleReset}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2.5 2v6h6M21.5 22v-6h-6" />
-                    <path d="M22 11.5A10 10 0 0 0 3.2 7.2M2 12.5a10 10 0 0 0 18.8 4.2" />
-                  </svg>
-                  Start Over
-                </button>
-              </motion.div>
-              
-              <AnimatePresence mode="wait">
-                {activeTab === 'feedback' && feedback && (
-                  <motion.div
-                    key="feedback"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <FeedbackCard feedback={feedback} />
-                  </motion.div>
-                )}
-                
-                {activeTab === 'jobMatch' && jobMatchData && (
-                  <motion.div
-                    key="jobMatch"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <JobMatchResult matchData={jobMatchData} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              )}
             </>
           )}
-          
-          <motion.footer
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-16 text-center text-sm text-slate-500 dark:text-slate-400"
-          >
-            <p>
-              Resume Feedback Generator © {new Date().getFullYear()} | 
-              Built with React + Tailwind
-            </p>
-          </motion.footer>
+
+          {activeTab === 'feedback' && feedback && (
+            <FeedbackCard feedback={feedback} />
+          )}
+
+          {activeTab === 'jobMatch' && !jobMatchData && (
+            <JobMatchAnalysis
+              resumeText={resumeText}
+              apiKey={apiKey}
+              onMatchAnalysisComplete={handleJobMatchAnalysisComplete}
+            />
+          )}
+          {activeTab === 'jobMatch' && jobMatchData && (
+            <JobMatchResult matchData={jobMatchData} />
+          )}
+
+          {activeTab === 'analytics' && resumeText.trim() && (
+            <ResumeAnalytics resumeText={resumeText} />
+          )}
+
+          {activeTab === 'ats' && resumeText.trim() && (
+            <ATSSimulator resumeText={resumeText} />
+          )}
         </motion.div>
       </div>
     </>
