@@ -25,7 +25,7 @@ This fully client-side app provides actionable suggestions, section-by-section a
 ## ✨ Key Features
 
 - **📤 Intuitive Upload Experience**
-  - Drag & drop PDF upload with visual feedback
+  - Drag & drop PDF upload with amazing visual feedback
   - Text paste option for maximum flexibility
   - Clean, user-friendly interface
 
